@@ -47,6 +47,7 @@ use OCP\Lock\LockedException;
 use OCP\Util;
 use Sabre\DAV\Exception;
 use Sabre\DAV\Exception\BadRequest;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Test\HookHelper;
 use Test\TestCase;
@@ -526,9 +527,20 @@ class FileTest extends TestCase {
 
 		$_SERVER['HTTP_OC_CHUNKED'] = true;
 		$file = 'foo.txt';
+
+		$calledAfterCreateFile = [];
+		\OC::$server->getEventDispatcher()->addListener('file.aftercreate',
+			function (GenericEvent $event) use (&$calledAfterCreateFile) {
+				$calledAfterCreateFile[] = 'file.aftercreate';
+				$calledAfterCreateFile[] = $event;
+			});
+
 		$this->doPut($file.'-chunking-12345-2-0', null, $request);
 		$this->doPut($file.'-chunking-12345-2-1', null, $request);
 		$this->assertEquals($resultMtime, $this->getFileInfos($file)['mtime']);
+		$this->assertInstanceOf(GenericEvent::class, $calledAfterCreateFile[1]);
+		$this->assertEquals('file.aftercreate', $calledAfterCreateFile[0]);
+		$this->assertArrayHasKey('path', $calledAfterCreateFile[1]);
 	}
 
 	/**

@@ -542,7 +542,23 @@ class File extends Node implements IFile, IFileNode {
 
 				$this->fileView->unlockFile($targetPath, ILockingProvider::LOCK_SHARED);
 
-				return $info->getEtag();
+				$etag = $info->getEtag();
+				/**
+				 * The absoulte path has chunking file name lets say /$uid/files/VID-20171022-WA0000.mp4-chunking-4043-10-9
+				 * Where as the real filename would be /$uid/files/VID-20171022-WA0000.mp4
+				 * So we try to remove VID-20171022-WA0000.mp4-chunking-4043-10-9 from the absolute path and append
+				 * VID-20171022-WA0000.mp4 to the path to get the absolute path of real file.
+				 */
+				$path = explode('/', $this->fileView->getAbsolutePath($this->path));
+				array_pop($path);
+				$path = implode('/', $path);
+				$path = $path . '/' . $info['name'];
+
+				if ($etag !== null) {
+					$afterEvent = new GenericEvent(null, ['path' => $path]);
+					\OC::$server->getEventDispatcher()->dispatch('file.aftercreate', $afterEvent);
+				}
+				return $etag;
 			} catch (\Exception $e) {
 				if ($partFile !== null) {
 					$targetStorage->unlink($targetInternalPath);
