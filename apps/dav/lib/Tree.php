@@ -31,10 +31,24 @@ use Sabre\DAV\ICollection;
  * having to walk through every node and trigger unnecessary extra queries.
  */
 class Tree extends \Sabre\DAV\Tree {
+
+	use DeletedItemsCacheTrait;
+
+	/**
+	 * @param string $path
+	 *
+	 * @return void
+	 */
+	public function delete($path) {
+		$this->beforeDelete($path);
+		parent::delete($path);
+	}
+
 	/**
 	 * Returns the INode object for the requested path
 	 *
 	 * @param string $path
+	 *
 	 * @return \Sabre\DAV\INode
 	 * @throws NotFound
 	 */
