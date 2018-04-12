@@ -214,9 +214,11 @@ $CONFIG = array(
 'session_keepalive' => true,
 
 /**
- * Enforce token authentication for clients, which blocks requests using the user
- * password for enhanced security. Users need to generate tokens in personal settings
- * which can be used as passwords on their clients.
+ * Enforces oAuth2 token only authentication for clients connecting to ownCloud. 
+ * If enabled, all client requests using the users password are blocked for enhanced security. 
+ * Users need to generate tokens for their clients in their personal settings which are further 
+ * used for client authentication. Browser logon is not affected. 
+ * The oAuth2 app must be installed and enabled.
  */
 'token_auth_enforced' => false,
 
